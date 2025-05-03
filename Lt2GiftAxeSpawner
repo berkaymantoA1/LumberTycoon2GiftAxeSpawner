@@ -1,3 +1,32 @@
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- Frame'in taşınabilir olmasını sağlamak için aşağıdaki kodu ekliyoruz.
+local MainFrame = script.Parent  -- Bu, taşınabilir yapacağımız ana Frame'dir.
+local Holding = Instance.new("BoolValue", MainFrame)  -- Bu, farenin tıklanıp tıklanmadığını kontrol etmek için kullanacağız.
+Holding.Name = "Holding"
+Holding.Value = false  -- Başlangıçta fare tıklanmadığı için değeri false yapıyoruz.
+
+-- Mouse butonuna basıldığında, Holding değerini true yapıyoruz.
+mouse.Button1Down:Connect(function()
+    Holding.Value = true
+end)
+
+-- Mouse butonu bırakıldığında, Holding değerini false yapıyoruz.
+mouse.Button1Up:Connect(function()
+    Holding.Value = false
+end)
+
+-- Fare hareket ettiğinde, eğer Holding true ise Frame'i fareyle taşıyoruz.
+mouse.Move:Connect(function()
+    if Holding.Value == true then
+        MainFrame.Position = UDim2.new(0, mouse.X, 0, mouse.Y)  -- Fare konumuna göre frame'i taşıyoruz.
+    end
+end)
+
+-- Buraya kadar GUI'nin taşıma kodları.
+
+-- Diğer UI ve işlevler için aşağıdaki kodu da kullanabilirsiniz.
 local Gifts = {
     "2016CGift_Ut", "2015CGift_Coal", "2015CGift_Red", "2016CGift_Sweet", "2015CGift_Volcano",
     "2015CGift_Wobble", "2016CGift_Blue", "2016CGift_Big", "2016CGift_Jingle", "2016CGift_Wobble",
@@ -14,7 +43,7 @@ local Axes = {
     "AxeChicken", "CandyCaneAxe", "AxeAmber", "GingerBreadAxe", "AxeTwitter", "RustyAxe"
 }
 
--- GUI oluştur
+-- GUI oluştur ve işlemleri ekle (önceki scriptteki gibi)
 local ScreenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
 ScreenGui.Name = "ItemSpawner"
 
@@ -41,31 +70,6 @@ CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.TextSize = 20
 CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy() -- X butonuna tıklayınca GUI'yi kapatır
-end)
-
--- Frame'i Taşıyabilmek İçin Kullanıcı Etkileşimi
-local dragging = false
-local dragInput, dragStart, startPos
-
-MainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-    end
-end)
-
-MainFrame.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
-
-game:GetService("UserInputService").InputChanged:Connect(function(input)
-    if dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
 end)
 
 -- ScrollingFrame ve Butonlar ekleme işlemleri
