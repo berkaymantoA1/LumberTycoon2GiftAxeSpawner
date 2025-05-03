@@ -16,6 +16,25 @@ MainFrame.Draggable = true
 local UICorner = Instance.new("UICorner", MainFrame)
 UICorner.CornerRadius = UDim.new(0, 12)
 
+-- Animasyonlu Başlık
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "BerkHub Lt2 Spawner"
+Title.Font = Enum.Font.SourceSansBold
+Title.TextScaled = true
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+task.spawn(function()
+    while true do
+        for i = 0, 1, 0.01 do
+            Title.TextColor3 = Color3.fromHSV(i, 1, 1)
+            task.wait(0.05)
+        end
+    end
+end)
+
 -- X Butonu
 local CloseBtn = Instance.new("TextButton", MainFrame)
 CloseBtn.Size = UDim2.new(0, 60, 0, 30)
@@ -99,9 +118,16 @@ AutoBtn.MouseButton1Click:Connect(function()
         AutoBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
         task.spawn(function()
             while autoEnabled do
-                if selection and selection ~= "Select Gift" and selection ~= "Select Axe" then
-                    spawn()
+                if math.random(1, 2) == 1 then
+                    -- Spawn random gift
+                    local index = math.random(2, #Gifts)
+                    selection = Gifts[index]
+                else
+                    -- Spawn random axe
+                    local index = math.random(2, #Axes)
+                    selection = Axes[index]
                 end
+                spawn()
                 task.wait(1.5)
             end
         end)
