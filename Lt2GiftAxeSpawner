@@ -1,32 +1,66 @@
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- Frame'in taşınabilir olmasını sağlamak için aşağıdaki kodu ekliyoruz.
-local MainFrame = script.Parent  -- Bu, taşınabilir yapacağımız ana Frame'dir.
-local Holding = Instance.new("BoolValue", MainFrame)  -- Bu, farenin tıklanıp tıklanmadığını kontrol etmek için kullanacağız.
-Holding.Name = "Holding"
-Holding.Value = false  -- Başlangıçta fare tıklanmadığı için değeri false yapıyoruz.
+-- GUI Kurulumu
+local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+ScreenGui.Name = "ItemSpawner"
 
--- Mouse butonuna basıldığında, Holding değerini true yapıyoruz.
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 250, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local UICorner = Instance.new("UICorner", MainFrame)
+UICorner.CornerRadius = UDim.new(0, 12)
+
+-- X Butonu (Ortada ve çalışır şekilde)
+local CloseBtn = Instance.new("TextButton", MainFrame)
+CloseBtn.Size = UDim2.new(0, 60, 0, 30)
+CloseBtn.Position = UDim2.new(0.5, -30, 1, -35)
+CloseBtn.Text = "X"
+CloseBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.TextSize = 20
+
+local CloseUICorner = Instance.new("UICorner", CloseBtn)
+CloseUICorner.CornerRadius = UDim.new(0, 8)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Fare ile taşıma için Holding kontrolü
+local Holding = Instance.new("BoolValue", MainFrame)
+Holding.Name = "Holding"
+Holding.Value = false
+
 mouse.Button1Down:Connect(function()
     Holding.Value = true
 end)
 
--- Mouse butonu bırakıldığında, Holding değerini false yapıyoruz.
 mouse.Button1Up:Connect(function()
     Holding.Value = false
 end)
 
--- Fare hareket ettiğinde, eğer Holding true ise Frame'i fareyle taşıyoruz.
 mouse.Move:Connect(function()
     if Holding.Value == true then
-        MainFrame.Position = UDim2.new(0, mouse.X, 0, mouse.Y)  -- Fare konumuna göre frame'i taşıyoruz.
+        MainFrame.Position = UDim2.new(0, mouse.X, 0, mouse.Y)
     end
 end)
 
--- Buraya kadar GUI'nin taşıma kodları.
+-- ScrollingFrame ve butonlar
+local ScrollingFrame = Instance.new("ScrollingFrame", MainFrame)
+ScrollingFrame.Size = UDim2.new(1, -10, 1, -50)
+ScrollingFrame.Position = UDim2.new(0, 5, 0, 5)
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.ScrollBarThickness = 6
 
--- Diğer UI ve işlevler için aşağıdaki kodu da kullanabilirsiniz.
+-- Item Listeleri
 local Gifts = {
     "2016CGift_Ut", "2015CGift_Coal", "2015CGift_Red", "2016CGift_Sweet", "2015CGift_Volcano",
     "2015CGift_Wobble", "2016CGift_Blue", "2016CGift_Big", "2016CGift_Jingle", "2016CGift_Wobble",
@@ -43,45 +77,8 @@ local Axes = {
     "AxeChicken", "CandyCaneAxe", "AxeAmber", "GingerBreadAxe", "AxeTwitter", "RustyAxe"
 }
 
--- GUI oluştur ve işlemleri ekle (önceki scriptteki gibi)
-local ScreenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
-ScreenGui.Name = "ItemSpawner"
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, (#Gifts + #Axes + 2) * 45)
 
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 250, 0, 350)  -- Boyutları küçülttük
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -175) -- Merkezi konum
-MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true -- Bu satır önemli! Taşınabilirlik özelliği
-
--- Köşeleri Yuvarlat
-local UICorner = Instance.new("UICorner", MainFrame)
-UICorner.CornerRadius = UDim.new(0, 12)
-
--- Kapatma Butonu (X Butonu)
-local CloseBtn = Instance.new("TextButton", MainFrame)
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -35, 0, 5)
-CloseBtn.Text = "X"
-CloseBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.Font = Enum.Font.SourceSansBold
-CloseBtn.TextSize = 20
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy() -- X butonuna tıklayınca GUI'yi kapatır
-end)
-
--- ScrollingFrame ve Butonlar ekleme işlemleri
-local ScrollingFrame = Instance.new("ScrollingFrame", MainFrame)
-ScrollingFrame.Size = UDim2.new(1, -10, 1, -10)
-ScrollingFrame.Position = UDim2.new(0, 5, 0, 5)
-ScrollingFrame.BackgroundTransparency = 1
-ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.ScrollBarThickness = 6
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, (#Gifts + #Axes + 2) * 45)  -- CanvasBoyutu arttırıldı
-
--- Örnek Buton
 local function spawnItem(itemName)
     local Plr = game.Players.LocalPlayer
     local Added = workspace.PlayerModels.ChildAdded:Connect(function(v)
@@ -99,7 +96,6 @@ local function spawnItem(itemName)
     Added:Disconnect()
 end
 
--- Başlık Label
 local function createLabel(text, yPos)
     local Label = Instance.new("TextLabel", ScrollingFrame)
     Label.Size = UDim2.new(1, -20, 0, 30)
@@ -112,7 +108,6 @@ local function createLabel(text, yPos)
     return yPos + 35
 end
 
--- Buton Oluştur
 local function createButton(name, yPos)
     local Button = Instance.new("TextButton", ScrollingFrame)
     Button.Size = UDim2.new(1, -20, 0, 40)
@@ -132,7 +127,6 @@ local function createButton(name, yPos)
     return yPos + 45
 end
 
--- Gifts ve Axes ekle
 local Y = createLabel("Gifts", 10)
 for _, gift in ipairs(Gifts) do
     Y = createButton(gift, Y)
@@ -143,9 +137,8 @@ for _, axe in ipairs(Axes) do
     Y = createButton(axe, Y)
 end
 
--- Bildirim
 game.StarterGui:SetCore("SendNotification", {
     Title = "Berk Spawner",
-    Text = "All items loaded!",
+    Text = "GUI Ready!",
     Duration = 5
 })
