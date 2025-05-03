@@ -118,6 +118,7 @@ AutoBtn.MouseButton1Click:Connect(function()
         AutoBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
         task.spawn(function()
             while autoEnabled do
+                -- Random bir item seçiyoruz
                 if math.random(1, 2) == 1 then
                     -- Spawn random gift
                     local index = math.random(2, #Gifts)
@@ -128,7 +129,9 @@ AutoBtn.MouseButton1Click:Connect(function()
                     selection = Axes[index]
                 end
                 spawn()
-                task.wait(1.5)
+                
+                -- 0.5 saniye bekleme
+                task.wait(0.5)  -- Spawnlar arasındaki bekleme süresi
             end
         end)
     else
