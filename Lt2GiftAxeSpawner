@@ -16,10 +16,10 @@ MainFrame.Draggable = true
 local UICorner = Instance.new("UICorner", MainFrame)
 UICorner.CornerRadius = UDim.new(0, 12)
 
--- X Butonu (Ortada ve çalışır şekilde)
+-- X Butonu
 local CloseBtn = Instance.new("TextButton", MainFrame)
 CloseBtn.Size = UDim2.new(0, 60, 0, 30)
-CloseBtn.Position = UDim2.new(0.5, -30, 1, -35)
+CloseBtn.Position = UDim2.new(0.5, -65, 1, -35)
 CloseBtn.Text = "X"
 CloseBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -33,112 +33,111 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Fare ile taşıma için Holding kontrolü
-local Holding = Instance.new("BoolValue", MainFrame)
-Holding.Name = "Holding"
-Holding.Value = false
+-- Auto Button
+local autoEnabled = false
 
-mouse.Button1Down:Connect(function()
-    Holding.Value = true
-end)
+local AutoBtn = Instance.new("TextButton", MainFrame)
+AutoBtn.Size = UDim2.new(0, 60, 0, 30)
+AutoBtn.Position = UDim2.new(0.5, 5, 1, -35)
+AutoBtn.Text = "Auto"
+AutoBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+AutoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoBtn.Font = Enum.Font.SourceSansBold
+AutoBtn.TextSize = 20
 
-mouse.Button1Up:Connect(function()
-    Holding.Value = false
-end)
+local AutoUICorner = Instance.new("UICorner", AutoBtn)
+AutoUICorner.CornerRadius = UDim.new(0, 8)
 
-mouse.Move:Connect(function()
-    if Holding.Value == true then
-        MainFrame.Position = UDim2.new(0, mouse.X, 0, mouse.Y)
-    end
-end)
-
--- ScrollingFrame ve butonlar
-local ScrollingFrame = Instance.new("ScrollingFrame", MainFrame)
-ScrollingFrame.Size = UDim2.new(1, -10, 1, -50)
-ScrollingFrame.Position = UDim2.new(0, 5, 0, 5)
-ScrollingFrame.BackgroundTransparency = 1
-ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.ScrollBarThickness = 6
-
--- Item Listeleri
-local Gifts = {
-    "2016CGift_Ut", "2015CGift_Coal", "2015CGift_Red", "2016CGift_Sweet", "2015CGift_Volcano",
-    "2015CGift_Wobble", "2016CGift_Blue", "2016CGift_Big", "2016CGift_Jingle", "2016CGift_Wobble",
-    "2018CGift_Wobble", "2017CGift_Green", "2017CGift_GreatTimes", "2017CGift_Modern", "2017CGift_Wobble",
-    "2019CGift_Wobble_", "2017CGifts_Gold", "2018CGift_Snow", "2018CGift_Plate", "2018CGift_Cocoa",
-    "2018CGift_Candy", "2018CGift_Wobble_", "2018CGift_Duck", "2018CGift_Cone", "2018CGift_Sled",
-    "2018CGift_GingerAxe", "2018CGift_Plum", "2019CGift_Yellow_", "2019CGift_Bowl", "2019CGift_Rusty",
-    "2019CGift_Cola", "2019CGift_Burnt", "2020CGift_Teal", "2020CGift_Wobble", "2020CGift_Cave",
-    "2021CGift_Black", "2021CGift_Wobble"
-}
-
+-- Gift ve Axe listeleri
 local Axes = {
-    "BasicHatchet", "ManyAxe", "Axe1", "Axe2", "Axe3", "SilverAxe", "AxeBetaTesters", "EndTimesAxe",
-    "AxeChicken", "CandyCaneAxe", "AxeAmber", "GingerBreadAxe", "AxeTwitter", "RustyAxe"
+    "Select Axe","BasicHatchet","ManyAxe","Axe1","Axe2","Axe3","SilverAxe","AxeBetaTesters",
+    "EndTimesAxe","AxeChicken","CandyCaneAxe","AxeAmber","GingerBreadAxe","AxeTwitter","RustyAxe"
 }
 
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, (#Gifts + #Axes + 2) * 45)
+local Gifts = {
+    "Select Gift","2016CGift_Ut","2015CGift_Coal","2015CGift_Red","2016CGift_Sweet","2015CGift_Volcano",
+    "2015CGift_Wobble","2016CGift_Blue","2016CGift_Big","2016CGift_Jingle","2016CGift_Wobble",
+    "2018CGift_Wobble","2017CGift_Green","2017CGift_GreatTimes","2017CGift_Modern","2017CGift_Wobble",
+    "2019CGift_Wobble_","2017CGifts_Gold","2018CGift_Snow","2018CGift_Plate","2018CGift_Cocoa",
+    "2018CGift_Candy","2018CGift_Wobble_","2018CGift_Duck","2018CGift_Cone","2018CGift_Sled",
+    "2018CGift_GingerAxe","2018CGift_Plum","2019CGift_Yellow_","2019CGift_Bowl","2019CGift_Rusty",
+    "2019CGift_Cola","2019CGift_Burnt","2020CGift_Teal","2020CGift_Wobble","2020CGift_Cave",
+    "2021CGift_Black","2021CGift_Wobble"
+}
 
-local function spawnItem(itemName)
-    local Plr = game.Players.LocalPlayer
-    local Added = workspace.PlayerModels.ChildAdded:Connect(function(v)
-        local Owner = v:WaitForChild("Owner")
-        local Type = v:WaitForChild("Type")
+-- Seçili item
+local selection = nil
+local Amount1 = 5
+
+-- Spawn fonksiyonu
+function spawn()
+    local Item = selection
+    local Amount = Amount1
+    local Plr = game:GetService("Players").LocalPlayer
+    local Added
+
+    Added = game:GetService("Workspace").PlayerModels.ChildAdded:Connect(function(v)
+        local Owner, Type = v:WaitForChild("Owner"), v:WaitForChild("Type")
         if Owner.Value == Plr and Type.Value == "Blueprint" then
-            game.ReplicatedStorage.PlaceStructure.ClientPlacedStructure:FireServer(itemName, Plr.Character.Head.CFrame, Plr, nil, v, true)
+            game:GetService("ReplicatedStorage").PlaceStructure.ClientPlacedStructure:FireServer(Item, Plr.Character.Head.CFrame, Plr, nil, v, true)
         end
     end)
-    for i = 1, 5 do
-        game.ReplicatedStorage.PlaceStructure.ClientPlacedBlueprint:FireServer("Floor1Tiny", Plr.Character.Head.CFrame, Plr)
+
+    for i = 1, Amount do
+        game:GetService("ReplicatedStorage").PlaceStructure.ClientPlacedBlueprint:FireServer("Floor1Tiny", Plr.Character.Head.CFrame, Plr)
         task.wait()
     end
+
     task.wait(2)
     Added:Disconnect()
 end
 
-local function createLabel(text, yPos)
-    local Label = Instance.new("TextLabel", ScrollingFrame)
-    Label.Size = UDim2.new(1, -20, 0, 30)
-    Label.Position = UDim2.new(0, 10, 0, yPos)
-    Label.BackgroundTransparency = 1
-    Label.Text = text
-    Label.Font = Enum.Font.SourceSansBold
-    Label.TextSize = 20
-    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    return yPos + 35
-end
+-- Auto sistem
+AutoBtn.MouseButton1Click:Connect(function()
+    autoEnabled = not autoEnabled
+    if autoEnabled then
+        AutoBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        task.spawn(function()
+            while autoEnabled do
+                if selection and selection ~= "Select Gift" and selection ~= "Select Axe" then
+                    spawn()
+                end
+                task.wait(1.5)
+            end
+        end)
+    else
+        AutoBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+    end
+end)
 
-local function createButton(name, yPos)
-    local Button = Instance.new("TextButton", ScrollingFrame)
-    Button.Size = UDim2.new(1, -20, 0, 40)
-    Button.Position = UDim2.new(0, 10, 0, yPos)
-    Button.Text = name
-    Button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.Font = Enum.Font.SourceSansBold
-    Button.TextSize = 16
+-- Gift Button
+local GiftBtn = Instance.new("TextButton", MainFrame)
+GiftBtn.Size = UDim2.new(0, 220, 0, 30)
+GiftBtn.Position = UDim2.new(0, 15, 0, 50)
+GiftBtn.Text = "Spawn Random Gift"
+GiftBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+GiftBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+GiftBtn.Font = Enum.Font.SourceSans
+GiftBtn.TextSize = 18
 
-    local UICornerBtn = Instance.new("UICorner", Button)
-    UICornerBtn.CornerRadius = UDim.new(0, 6)
+GiftBtn.MouseButton1Click:Connect(function()
+    local index = math.random(2, #Gifts)
+    selection = Gifts[index]
+    spawn()
+end)
 
-    Button.MouseButton1Click:Connect(function()
-        spawnItem(name)
-    end)
-    return yPos + 45
-end
+-- Axe Button
+local AxeBtn = Instance.new("TextButton", MainFrame)
+AxeBtn.Size = UDim2.new(0, 220, 0, 30)
+AxeBtn.Position = UDim2.new(0, 15, 0, 90)
+AxeBtn.Text = "Spawn Random Axe"
+AxeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AxeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AxeBtn.Font = Enum.Font.SourceSans
+AxeBtn.TextSize = 18
 
-local Y = createLabel("Gifts", 10)
-for _, gift in ipairs(Gifts) do
-    Y = createButton(gift, Y)
-end
-
-Y = createLabel("Axes", Y)
-for _, axe in ipairs(Axes) do
-    Y = createButton(axe, Y)
-end
-
-game.StarterGui:SetCore("SendNotification", {
-    Title = "Berk Spawner",
-    Text = "GUI Ready!",
-    Duration = 5
-})
+AxeBtn.MouseButton1Click:Connect(function()
+    local index = math.random(2, #Axes)
+    selection = Axes[index]
+    spawn()
+end)
